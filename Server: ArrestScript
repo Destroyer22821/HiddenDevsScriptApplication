@@ -1,0 +1,413 @@
+local DiedConn
+local DiedConn2
+
+local Handcuffed = game.ReplicatedStorage.Arrest.Main.Handcuffed
+local Cuff2 = game.ReplicatedStorage.Arrest.Main.Cuff
+local Release = game.ReplicatedStorage.Arrest.Main.Release
+local Detain = game.ReplicatedStorage.Arrest.Main.Detain
+local Sitplr = game.ReplicatedStorage.Arrest.Sit.SitPlayer
+local getoutplr = game.ReplicatedStorage.Arrest.Sit.Getoutplr
+local Initialize = game.ReplicatedStorage.Arrest.Initialize
+local deactivate = game.ReplicatedStorage.Arrest.deactivate
+local SitActive = game.ReplicatedStorage.Arrest.Sit.SitActive
+local currentdeactive = game.ReplicatedStorage.Arrest.currentdeactive
+local Targethum
+local cufferattacker
+local cuffedTarget
+
+local WantedEv = game.ReplicatedStorage.Arrest.Wanted.Wanted
+
+local WantedValues = game.ServerStorage.WantedValues
+local JailedValues = game.ServerStorage.JailedValues
+local Prompt = game.ReplicatedStorage.Arrest.Prompt
+
+local DataStoreService = game:GetService("DataStoreService")
+local WantedDatastore = DataStoreService:GetDataStore("Wantedlevel")
+local JailedDatastore = DataStoreService:GetDataStore("JailData")
+
+local Jailplr = game.ReplicatedStorage.Arrest.Jailplr
+local seatplr = game.ReplicatedStorage.Arrest.Sit.seatplr
+local JailTimeEvent = game.ReplicatedStorage.Arrest.Jail.JailTime
+local jailtime = 0
+
+game.Players.PlayerAdded:Connect(function(plr)
+	print("int")
+	local WantedV = Instance.new("IntValue",WantedValues)
+	WantedV.Name = plr.Name
+	
+	local JailedV = Instance.new("IntValue",JailedValues)
+	JailedV.Name = plr.Name
+	
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local WUserID = "Wanted_"..plr.UserId
+	local JUserID = "Jail_"..plr.UserId
+	local level
+	local J
+	local sucess, errormessage = pcall(function()
+		level = WantedDatastore:GetAsync(WUserID)
+	
+	end)
+	if sucess then
+		if level then
+			WantedV.Value = level
+			print(level)
+			if WantedV.Value > 0 then
+				plr.TeamColor = game.Teams.Criminal.TeamColor
+			else
+				local force = Instance.new("ForceField")
+				force.Parent = char
+				force.Name = "Protection"
+				force.Visible = false
+				print("Protection set")
+			end
+		else
+			WantedV.Value = 0
+			local force = Instance.new("ForceField")
+			force.Parent = char
+			force.Name = "Protection"
+			force.Visible = false
+			print("Protection set")
+		end
+	end	
+
+	local sucess, errormessage = pcall(function()
+		J = JailedDatastore:GetAsync(JUserID)
+	end)
+	if sucess then
+		if J then
+			JailedV.Value = J
+			print("there")
+			if JailedV.Value > 0 then
+				plr.TeamColor = game.Teams.Jailed.TeamColor
+				plr:LoadCharacter()
+				local jailed = plr
+
+				seatplr:FireClient(plr)
+				JailTimeEvent:FireClient(plr, JailedV.Value)
+				wait(JailedV.Value)
+				jailed.TeamColor = game.Teams["Bürger"].TeamColor
+				wait(0.1)
+				jailed:LoadCharacter()
+				jailtime = 0
+				JailedV.Value = 0
+				local Wantedlevel = WantedValues:FindFirstChild(plr.Name)
+				Wantedlevel = 0
+			end
+		else
+			JailedV.Value = 0 
+			print("there2")
+		end
+	end	
+end)
+game.Players.PlayerRemoving:Connect(function(plr)     
+	local WUserID = "Wanted_"..plr.UserId
+	local Wanted = WantedValues:FindFirstChild(plr.Name).Value
+	local Jailed = JailedValues:FindFirstChild(plr.Name).Value
+	local JUserID = "Jail_"..plr.UserId
+	print(Wanted)
+	
+	local success, errorMessage = pcall(function()
+		WantedDatastore:SetAsync(WUserID,Wanted)
+	end)
+	print(WantedDatastore:GetAsync(WUserID))
+	
+	local success, errorMessage = pcall(function()
+		JailedDatastore:SetAsync(JUserID,Jailed)
+	end)
+	print(JailedDatastore:GetAsync(JUserID))
+end)
+
+local w 
+
+local function cuff(CufferAttacker, CuffedTarget)
+
+	if CuffedTarget == CufferAttacker then
+		print("sameplr")
+	else
+		print("rightplr")
+	print(CufferAttacker)
+	print(CuffedTarget)
+
+	local CuffedTargetCharacter =  CuffedTarget.Character or CuffedTarget.CharacterAdded:wait()
+	local CufferAttackerCharacter = CufferAttacker.Character or CufferAttacker.CharacterAdded:wait()
+
+	local TargetHum = CuffedTargetCharacter:WaitForChild("Humanoid")
+	local AttackerHum = CufferAttackerCharacter:WaitForChild("Humanoid")
+
+	Targethum = TargetHum
+		cufferattacker = CufferAttacker	
+		cuffedTarget = CuffedTarget
+
+	local function NewWeld(Part1, Part2, Offset)
+		Offset = Offset or CFrame.new(0,0,0)
+		local Weld = Instance.new("Weld")
+		Weld.Part0 = Part1
+		Weld.Part1 = Part2
+		Weld.C0 = Offset
+		Weld.Name = "Weld"
+		Weld.Parent = game.Workspace.Welds
+		return(Weld)
+	end
+
+	if CuffedTargetCharacter and CufferAttackerCharacter and TargetHum and AttackerHum then
+		local TargetHRP = CuffedTargetCharacter:FindFirstChild("HumanoidRootPart")
+		local AttackerHRP = CufferAttackerCharacter:FindFirstChild("HumanoidRootPart")
+		if TargetHRP and AttackerHRP then
+			TargetHum.WalkSpeed = 0
+			TargetHum.JumpPower = 0
+			TargetHum.JumpHeight = 0 
+
+			local weldpart = Instance.new("Part")
+			weldpart.Size = Vector3.new(0.01, 0.01, 0.01)
+			weldpart.Parent = AttackerHRP
+			local weld1 = NewWeld(TargetHRP, weldpart)
+			local weld2 = NewWeld(AttackerHRP, weldpart, CFrame.new(1.5, 0, -2.75))
+
+			if TargetHum.Sit == true then
+				TargetHum.Sit = false
+			end
+
+			TargetHum.PlatformStand = true
+				
+			Handcuffed:FireClient(CuffedTarget)
+			Cuff2:FireClient(CufferAttacker)
+			Sitplr:Fire(CufferAttacker, CuffedTarget)
+			currentdeactive:FireClient(CufferAttacker, CuffedTarget)
+			SitActive:FireClient(CufferAttacker, CufferAttacker, CuffedTarget)
+				
+				local force = Instance.new("ForceField")
+				force.Parent = CuffedTargetCharacter
+				force.Name = "JailProtection"
+				force.Visible = false
+				local force2 = Instance.new("ForceField")
+				force.Parent = CufferAttackerCharacter
+				force.Name = "CuffP"
+				force.Visible = false
+				
+				local Wantedlevel = WantedValues:FindFirstChild(CuffedTarget.Name)
+				w = Wantedlevel
+				local v = JailedValues:FindFirstChild(CuffedTarget.Name).Value
+				v = jailtime
+				print(jailtime)
+			for i,v in pairs (CuffedTargetCharacter:GetChildren()) do 	
+					v.Massless = true 
+			end
+
+			DiedConn = AttackerHum.Died:Connect(function()
+					TargetHum.PlatformStand = false
+					weld1:Destroy()
+				weld2:Destroy()
+				Handcuffed:FireClient(CuffedTarget)
+				DiedConn:Disconnect()
+				end)
+		end
+		end
+	end
+end
+
+Prompt.Event:Connect(function(Cufferattacker, CuffedTarget)
+	cuff(Cufferattacker, CuffedTarget)
+end)
+getoutplr.Event:Connect(function(plr, CuffedTarget)
+	cuff(plr, CuffedTarget)
+end)
+
+Detain.OnServerEvent:Connect(function(plr)
+	print("Connect1")
+	if plr.Name == cufferattacker.Name then 
+		local p = plr.Character:FindFirstChild("CuffP")
+		if p then
+			p:Destroy()
+		end
+		local weldpart = plr.Character.HumanoidRootPart:FindFirstChild("Part")
+		Targethum.PlatformStand = false
+		Targethum.WalkSpeed = 7
+		Targethum.JumpPower = 0
+		Targethum.JumpHeight = 0 
+		weldpart:Destroy()
+		Detain:FireClient(cuffedTarget)
+		SitActive:FireClient(cufferattacker, cufferattacker)
+		Initialize:FireClient(cufferattacker, cuffedTarget)
+		
+		for i,v in pairs (cuffedTarget.Character:GetChildren()) do 
+			if v.ClassName == "MeshPart" then
+				v.Massless = false	
+			end
+		end
+	end
+end)	
+Release.OnServerEvent:Connect(function(plr)
+	if plr.Name == cufferattacker.Name then 
+		local p = plr.Character:FindFirstChild("CuffP")
+		if p then
+			p:Destroy()
+		end
+		local weldpart = plr.Character.HumanoidRootPart:FindFirstChild("Part")
+		Targethum.PlatformStand = false
+		Targethum.WalkSpeed = 16
+		Targethum.JumpPower = 50
+		Targethum.JumpHeight = 7.2
+		weldpart:Destroy()
+		Release:FireClient(cuffedTarget)
+		SitActive:FireClient(cufferattacker, cufferattacker)
+		Initialize:FireClient(cufferattacker, cuffedTarget)
+		local jp = cuffedTarget.Character:FindFirstChild("JailProtection")
+		if jp then
+			jp:Destroy()
+			print("jp destroyed")
+		end
+		local Wantedlevel = WantedValues:FindFirstChild(cuffedTarget.Name)
+		Wantedlevel = w 
+		local v = JailedValues:FindFirstChild(cuffedTarget.Name).Value
+		jailtime = v  
+		
+		for i,v in pairs (cuffedTarget.Character:GetChildren()) do 
+			if v.ClassName == "MeshPart" then
+				v.Massless = false	
+			end
+		end
+	end
+end)
+
+Jailplr.Event:Connect(function(plr)
+	if plr == cufferattacker then
+		local p = plr.Character:FindFirstChild("CuffP")
+		if p then
+			p:Destroy()
+		end
+		local weldpart = plr.Character.HumanoidRootPart:FindFirstChild("Part")
+		Targethum.PlatformStand = false
+		Targethum.WalkSpeed = 16
+		Targethum.JumpPower = 50
+		weldpart:Destroy()
+		Release:FireClient(cuffedTarget)
+		for i,v in pairs (cuffedTarget.Character:GetChildren()) do 
+			if v.ClassName == "MeshPart" then
+			v.Massless = false	
+			end
+		end
+		cuffedTarget.TeamColor = game.Teams.Jailed.TeamColor
+		wait(0.1)
+		cuffedTarget:LoadCharacter()
+		local jailed = cuffedTarget
+		
+		seatplr:FireClient(plr)
+		SitActive:FireClient(cufferattacker, cufferattacker)
+		Initialize:FireClient(cufferattacker, cuffedTarget)
+		
+		local Wantedv = WantedValues:FindFirstChild(jailed.Name)
+		Wantedv.Value = 0 
+		local Jailv = JailedValues:FindFirstChild(jailed.Name)
+		Jailv.Value = jailtime
+		JailTimeEvent:FireClient(cuffedTarget, jailtime)
+		wait(jailtime)
+		print(jailtime)
+		jailed.TeamColor = game.Teams["Bürger"].TeamColor
+		wait(0.1)
+		jailed:LoadCharacter()
+		jailtime = 0
+	end
+end)
+----Wanted
+local function reactive(plr)
+	local Wantedlevel = WantedValues:FindFirstChild(plr.Name)
+	while  Wantedlevel.Value > 0 do 
+		wait(math.random(200, 400))
+		Wantedlevel.Value = Wantedlevel.Value - 1
+		print(Wantedlevel.Value)
+	end
+	
+end
+
+
+WantedEv.Event:Connect(function(plr)
+	print(plr)
+	local Wantedlevel = WantedValues:FindFirstChild(plr.Name)
+	if Wantedlevel.Value < 5 then
+		Wantedlevel.Value = Wantedlevel.Value + 1	
+		local char = plr.Character or plr.CharacterAdded:Wait()
+		wait(2)
+		print(Wantedlevel.Value)
+	
+		if Wantedlevel.Value == 0 then 
+				local force = Instance.new("ForceField")
+				force.Parent = char
+				force.Name = "Protection"
+				force.Visible = false
+				print("Protection reactive")
+			jailtime = 0
+			plr.TeamColor = game.Teams["Bürger"].TeamColor 
+			
+		elseif Wantedlevel.Value == 1 then 
+			local protection = char:FindFirstChild("Protection")
+			if protection then
+				protection:Destroy()
+				end
+			wait(1)
+			jailtime = jailtime + 60
+			print(Wantedlevel.Value)
+			print("Jailtime has set to "..jailtime)
+			
+		elseif Wantedlevel.Value == 2 then 
+			jailtime = jailtime + 60
+			print(Wantedlevel.Value)
+			
+		elseif Wantedlevel.Value == 3 then 
+			jailtime = jailtime + 60
+			print(Wantedlevel.Value)
+			
+		elseif Wantedlevel.Value == 4 then 
+			jailtime = jailtime + 60
+			print(Wantedlevel.Value)
+			
+		elseif Wantedlevel.Value == 5 then 
+			jailtime = jailtime + 60
+			print(Wantedlevel.Value)
+	
+		end	
+
+		reactive(plr)	
+		end
+end)
+-------------
+local Pdisable = game.ReplicatedStorage.Arrest.Pdisable
+local PActive = game.ReplicatedStorage.Arrest.PActive
+local on = false
+Pdisable.OnServerEvent:Connect(function(plr)
+	print("dco")
+	if on == false then
+	local char2 = plr.Character
+if char2 then
+			local p = char2:FindFirstChild("Protection")
+			if p then
+				p:Destroy()
+				print("p destroy")
+				on = true
+			end
+		end
+	else	
+		print("onfalse")
+		on = false
+		wait(13)
+		on = true
+	end
+	
+end)
+PActive.OnServerEvent:Connect(function(plr)
+	print("aco")
+	local char2 = plr.Character
+	if char2 then
+		wait(12)
+		if on == true then
+			if char2:FindFirstChild("Protection")  then
+				else
+		local force = Instance.new("ForceField")
+		force.Parent = char2
+				force.Name = "Protection"
+				force.Visible = false
+				print("Protection set")
+				on = false
+			end
+		end
+	end
+end)
