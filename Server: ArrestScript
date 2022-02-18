@@ -1,34 +1,34 @@
 --Variables
-local Handcuffed = game.ReplicatedStorage.Arrest.Main.Handcuffed
-local Cuff2 = game.ReplicatedStorage.Arrest.Main.Cuff
-local Release = game.ReplicatedStorage.Arrest.Main.Release
-local Detain = game.ReplicatedStorage.Arrest.Main.Detain
-local Sitplr = game.ReplicatedStorage.Arrest.Sit.SitPlayer
-local getoutplr = game.ReplicatedStorage.Arrest.Sit.Getoutplr
-local Initialize = game.ReplicatedStorage.Arrest.Initialize
-local deactivate = game.ReplicatedStorage.Arrest.deactivate
-local SitActive = game.ReplicatedStorage.Arrest.Sit.SitActive
-local currentdeactive = game.ReplicatedStorage.Arrest.currentdeactive
+local Handcuffed = game.ReplicatedStorage.Arrest.Main.Handcuffed --getting events
+local Cuff2 = game.ReplicatedStorage.Arrest.Main.Cuff  --see above
+local Release = game.ReplicatedStorage.Arrest.Main.Release --see above
+local Detain = game.ReplicatedStorage.Arrest.Main.Detain --see above
+local Sitplr = game.ReplicatedStorage.Arrest.Sit.SitPlayer --see above
+local getoutplr = game.ReplicatedStorage.Arrest.Sit.Getoutplr --see above
+local Initialize = game.ReplicatedStorage.Arrest.Initialize --see above
+local deactivate = game.ReplicatedStorage.Arrest.deactivate --see above
+local SitActive = game.ReplicatedStorage.Arrest.Sit.SitActive --see above
+local currentdeactive = game.ReplicatedStorage.Arrest.currentdeactive --see above
 local Targethum
 local cufferattacker
 local cuffedTarget
 
-local WantedEv = game.ReplicatedStorage.Arrest.Wanted.Wanted
+local WantedEv = game.ReplicatedStorage.Arrest.Wanted.Wanted --gets event
 
-local WantedValues = game.ServerStorage.WantedValues
-local JailedValues = game.ServerStorage.JailedValues
-local Prompt = game.ReplicatedStorage.Arrest.Prompt
+local WantedValues = game.ServerStorage.WantedValues --getsvaluefolder
+local JailedValues = game.ServerStorage.JailedValues --getsvaluefolder
+local Prompt = game.ReplicatedStorage.Arrest.Prompt 
 
-local DataStoreService = game:GetService("DataStoreService")
-local WantedDatastore = DataStoreService:GetDataStore("Wantedlevel")
-local JailedDatastore = DataStoreService:GetDataStore("JailData")
+local DataStoreService = game:GetService("DataStoreService")  --gets datastoreservice
+local WantedDatastore = DataStoreService:GetDataStore("Wantedlevel")  --gets datastore
+local JailedDatastore = DataStoreService:GetDataStore("JailData")--gets datastore
 
-local Jailplr = game.ReplicatedStorage.Arrest.Jailplr
+local Jailplr = game.ReplicatedStorage.Arrest.Jailplr --gets events located in ReplicatedStorage
 local seatplr = game.ReplicatedStorage.Arrest.Sit.seatplr
 local JailTimeEvent = game.ReplicatedStorage.Arrest.Jail.JailTime
-local jailtime = 0
+local jailtime = 0 --create datastore
 
-game.Players.PlayerAdded:Connect(function(plr)
+game.Players.PlayerAdded:Connect(function(plr) --player join function
 	local WantedV = Instance.new("IntValue",WantedValues) --creates new values and parent them
 	WantedV.Name = plr.Name   --names value
 	
@@ -36,73 +36,70 @@ game.Players.PlayerAdded:Connect(function(plr)
 	JailedV.Name = plr.Name --names value
 	
 	local char = plr.Character or plr.CharacterAdded:Wait() --waites for the character 
-	local WUserID = "Wanted_"..plr.UserId  
-	local JUserID = "Jail_"..plr.UserId
+	local WUserID = "Wanted_"..plr.UserId  --gets datastorename for storage
+	local JUserID = "Jail_"..plr.UserId --gets datastorename for storage
 	local level
 	local J
 	local sucess, errormessage = pcall(function() --gets the wantedlevel from datastore
 		level = WantedDatastore:GetAsync(WUserID)
 	end)
-	if sucess then
-		if level then
-			WantedV.Value = level
+	if sucess then --when no error occured because its a webcall
+		if level then --when there is data
+			WantedV.Value = level --sets wantedvalue to 
 			print(level)
-			if WantedV.Value > 0 then
-				plr.TeamColor = game.Teams.Criminal.TeamColor 
+			if WantedV.Value > 0 then  --if wantedvalue is bigger than 0 so he is wanted and searched by police 
+				plr.TeamColor = game.Teams.Criminal.TeamColor --teams player to criminal team
 			else
 				local force = Instance.new("ForceField") --if player not wanted protection is set so you cant take any damage
-				force.Parent = char
-				force.Name = "Protection"
-				force.Visible = false
+				force.Parent = char --parent it to the character
+				force.Name = "Protection" --named forcefield
+				force.Visible = false --make it invisble so you cant see it
 				print("Protection set")
 			end
 		else
 			WantedV.Value = 0   --if nothing is in the data wanted is set to 0 and also protection is addet
 			local force = Instance.new("ForceField")
-			force.Parent = char
-			force.Name = "Protection"
-			force.Visible = false
+			force.Parent = char --parent it to the character
+			force.Name = "Protection" --named forcefield
+			force.Visible = false --make it invisble so you cant see it
 			print("Protection set")
 		end
 	end	
 
-	local sucess, errormessage = pcall(function() --gets jaildata from datastore
-		J = JailedDatastore:GetAsync(JUserID)
+	local sucess, errormessage = pcall(function() --pcalls function so if a error occured the script doesnt break
+		J = JailedDatastore:GetAsync(JUserID)--gets jaildata from datastore
 	end)
-	if sucess then
-		if J then
-			JailedV.Value = J
-			print("there")
+	if sucess then --if no error occured
+		if J then --if there is a value
+			JailedV.Value = J --sets datastore vlaue to value located in serverstorage
 			if JailedV.Value > 0 then --if there is a jailtime player will teamed to jailed team 
-				plr.TeamColor = game.Teams.Jailed.TeamColor 
-				plr:LoadCharacter()
-				local jailed = plr
+				plr.TeamColor = game.Teams.Jailed.TeamColor  --teams player in jailteam
+				plr:LoadCharacter() --respawns character
+				local jailed = plr 
 
-				seatplr:FireClient(plr) 
-				JailTimeEvent:FireClient(plr, JailedV.Value) 
+				seatplr:FireClient(plr) --event is fired to handles prompt 
+				JailTimeEvent:FireClient(plr, JailedV.Value) --fires client so the arrest time can be displayed on a gui
 				wait(JailedV.Value) --waites jailtime 
 				jailed.TeamColor = game.Teams["Bürger"].TeamColor --teamed back to normal team
 				wait(0.1)
 				jailed:LoadCharacter() --respawn
-				jailtime = 0  --setting values back
-				JailedV.Value = 0
-				local Wantedlevel = WantedValues:FindFirstChild(plr.Name) 
-				Wantedlevel = 0
+				jailtime = 0  --sets values back
+				JailedV.Value = 0  --sets values back
+				local Wantedlevel = WantedValues:FindFirstChild(plr.Name) --search for the Value in the WantedFolder
+				Wantedlevel = 0 --sets values back
 			end
 		else
-			JailedV.Value = 0 
-			print("there2")
+			JailedV.Value = 0  --if no data sets value to 0
 		end
 	end	
 end)
-game.Players.PlayerRemoving:Connect(function(plr)     --playerleftevent
-	local WUserID = "Wanted_"..plr.UserId
-	local Wanted = WantedValues:FindFirstChild(plr.Name).Value
-	local Jailed = JailedValues:FindFirstChild(plr.Name).Value
-	local JUserID = "Jail_"..plr.UserId
-	print(Wanted)
+game.Players.PlayerRemoving:Connect(function(plr)     --playerleft function
+	local WUserID = "Wanted_"..plr.UserId --gets datastorename by UserId
+	local Wanted = WantedValues:FindFirstChild(plr.Name).Value --searchs for the value of the player
+	local Jailed = JailedValues:FindFirstChild(plr.Name).Value --searchs for the value of the player
+	local JUserID = "Jail_"..plr.UserId --gets datastorename by UserId
 	
-	local success, errorMessage = pcall(function()
+	local success, errorMessage = pcall(function() --pcall function to avoid errors
 		WantedDatastore:SetAsync(WUserID,Wanted) --saves wanted level
 	end)
 	print(WantedDatastore:GetAsync(WUserID))
