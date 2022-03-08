@@ -1,5 +1,5 @@
 --Variables
-local Handcuffed = game.ReplicatedStorage.Arrest.Main.Handcuffed --getting events
+local Handcuffed = game.ReplicatedStorage.Arrest.Main.Handcuffed -- sets variables
 local Cuff2 = game.ReplicatedStorage.Arrest.Main.Cuff  --see above
 local Release = game.ReplicatedStorage.Arrest.Main.Release --see above
 local Detain = game.ReplicatedStorage.Arrest.Main.Detain --see above
@@ -13,18 +13,18 @@ local Targethum
 local cufferattacker
 local cuffedTarget
 
-local WantedEv = game.ReplicatedStorage.Arrest.Wanted.Wanted --gets event
+local WantedEv = game.ReplicatedStorage.Arrest.Wanted.Wanted --see above
 
-local WantedValues = game.ServerStorage.WantedValues --getsvaluefolder
-local JailedValues = game.ServerStorage.JailedValues --getsvaluefolder
-local Prompt = game.ReplicatedStorage.Arrest.Prompt 
+local WantedValues = game.ServerStorage.WantedValues --gets value folder
+local JailedValues = game.ServerStorage.JailedValues --gets value folder
+local Prompt = game.ReplicatedStorage.Arrest.Prompt --variables
 
 local DataStoreService = game:GetService("DataStoreService")  --gets datastoreservice
 local WantedDatastore = DataStoreService:GetDataStore("Wantedlevel")  --gets datastore
 local JailedDatastore = DataStoreService:GetDataStore("JailData")--gets datastore
 
-local Jailplr = game.ReplicatedStorage.Arrest.Jailplr --gets events located in ReplicatedStorage
-local seatplr = game.ReplicatedStorage.Arrest.Sit.seatplr
+local Jailplr = game.ReplicatedStorage.Arrest.Jailplr --gets events located in ReplicatedStorage/ variables
+local seatplr = game.ReplicatedStorage.Arrest.Sit.seatplr 
 local JailTimeEvent = game.ReplicatedStorage.Arrest.Jail.JailTime
 local jailtime = 0 --create datastore
 
@@ -43,7 +43,7 @@ game.Players.PlayerAdded:Connect(function(plr) --player join function
 	local sucess, errormessage = pcall(function() --gets the wantedlevel from datastore
 		level = WantedDatastore:GetAsync(WUserID)
 	end)
-	if sucess then --when no error occured because its a webcall
+	if sucess then --when no error occured (needed because its a pcall = webcall)
 		if level then --when there is data
 			WantedV.Value = level --sets wantedvalue to 
 			print(level)
@@ -54,7 +54,6 @@ game.Players.PlayerAdded:Connect(function(plr) --player join function
 				force.Parent = char --parent it to the character
 				force.Name = "Protection" --named forcefield
 				force.Visible = false --make it invisble so you cant see it
-				print("Protection set")
 			end
 		else
 			WantedV.Value = 0   --if nothing is in the data wanted is set to 0 and also protection is addet
@@ -62,7 +61,6 @@ game.Players.PlayerAdded:Connect(function(plr) --player join function
 			force.Parent = char --parent it to the character
 			force.Name = "Protection" --named forcefield
 			force.Visible = false --make it invisble so you cant see it
-			print("Protection set")
 		end
 	end	
 
@@ -125,7 +123,7 @@ local function cuff(CufferAttacker, CuffedTarget) --cuff function
 	local CufferAttackerCharacter = CufferAttacker.Character or CufferAttacker.CharacterAdded:wait() --gets/waites for charactte
 
 	local TargetHum = CuffedTargetCharacter:WaitForChild("Humanoid") --gets humanoid
-	local AttackerHum = CufferAttackerCharacter:WaitForChild("Humanoid")
+	local AttackerHum = CufferAttackerCharacter:WaitForChild("Humanoid") --see above
 
 	Targethum = TargetHum
 	cufferattacker = CufferAttacker	
@@ -133,13 +131,13 @@ local function cuff(CufferAttacker, CuffedTarget) --cuff function
 
 	local function NewWeld(Part1, Part2, Offset)  --creates new weld between cuffer and the cuffed player
 		Offset = Offset or CFrame.new(0,0,0)
-		local Weld = Instance.new("Weld")
-		Weld.Part0 = Part1
-		Weld.Part1 = Part2
-		Weld.C0 = Offset
-		Weld.Name = "Weld"
-		Weld.Parent = game.Workspace.Welds
-		return(Weld)
+		local Weld = Instance.new("Weld") --creates weld
+		Weld.Part0 = Part1 --sets part0 
+		Weld.Part1 = Part2 --and part1
+		Weld.C0 = Offset --sets C0
+		Weld.Name = "Weld" --names it 
+		Weld.Parent = game.Workspace.Welds --parents it
+		return(Weld) --returns created weld where it was originally called
 	end
 
 	if CuffedTargetCharacter and CufferAttackerCharacter and TargetHum and AttackerHum then --checks if all is found
@@ -150,13 +148,13 @@ local function cuff(CufferAttacker, CuffedTarget) --cuff function
 			TargetHum.JumpPower = 0-sets cuffed player jumppower 0 so he cant jump anymore
 
 			local weldpart = Instance.new("Part") --adds new part
-			weldpart.Size = Vector3.new(0.01, 0.01, 0.01) 
+			weldpart.Size = Vector3.new(0.01, 0.01, 0.01) --sets size 
 			weldpart.Parent = AttackerHRP
-			local weld1 = NewWeld(TargetHRP, weldpart)
-			local weld2 = NewWeld(AttackerHRP, weldpart, CFrame.new(1.5, 0, -2.75))
+			local weld1 = NewWeld(TargetHRP, weldpart) --calls function
+			local weld2 = NewWeld(AttackerHRP, weldpart, CFrame.new(1.5, 0, -2.75)) --calls function
 
 			if TargetHum.Sit == true then --if cuffed player sits he stand up
-				TargetHum.Sit = false
+				TargetHum.Sit = false 
 			end
 
 			TargetHum.PlatformStand = true 
@@ -181,7 +179,7 @@ local function cuff(CufferAttacker, CuffedTarget) --cuff function
 				local v = JailedValues:FindFirstChild(CuffedTarget.Name).Value
 				v = jailtime
 				print(jailtime)
-			for i,v in pairs (CuffedTargetCharacter:GetChildren()) do 	
+			for i,v in pairs (CuffedTargetCharacter:GetChildren()) do -- gets children of character and creates for loop
 				v.Massless = true  --makes cuffed person massless so the officer can walk with it smoothly
 			end
 		end
@@ -190,14 +188,13 @@ local function cuff(CufferAttacker, CuffedTarget) --cuff function
 end
 
 Prompt.Event:Connect(function(Cufferattacker, CuffedTarget) --event will receive when Prompt at the character from a player is triggered so it cuffs
-	cuff(Cufferattacker, CuffedTarget)
+	cuff(Cufferattacker, CuffedTarget) --calls cuff function
 end)
 getoutplr.Event:Connect(function(plr, CuffedTarget) --event will receive when the policeofficer want to get out the player from the car so it cuffs the player
-	cuff(plr, CuffedTarget)
+	cuff(plr, CuffedTarget) --calls cuff function
 end)
 
 Detain.OnServerEvent:Connect(function(plr) 
-	print("Connect1")
 	if plr.Name == cufferattacker.Name then 
 		local p = plr.Character:FindFirstChild("CuffP")
 		if p then
@@ -295,7 +292,7 @@ local function reactive(plr) --decrease wantedlevel every 200-400 seconds by 1
 end
 
 
-WantedEv.Event:Connect(function(plr)
+WantedEv.Event:Connect(function(plr) --fires whenever wantedvalue change (here the script receive the event and handle what it should do with the wantedlevel,...)
 	print(plr)
 	local Wantedlevel = WantedValues:FindFirstChild(plr.Name)
 	if Wantedlevel.Value < 5 then
@@ -303,16 +300,16 @@ WantedEv.Event:Connect(function(plr)
 		local char = plr.Character or plr.CharacterAdded:Wait()
 		wait(2)
 		print(Wantedlevel.Value)
-		if Wantedlevel.Value == 0 then 
+		if Wantedlevel.Value == 0 then --checks if wantedlevel a player has and applies the jailtime  --if wantedvalue 0 then it will install a force field and sets jailtime to 0 otherwise adds jailtime or remove protection
 				local force = Instance.new("ForceField") --reactive forcefield
 				force.Parent = char
 				force.Name = "Protection"
 				force.Visible = false
 				print("Protection reactive")
 			jailtime = 0
-			plr.TeamColor = game.Teams["Bürger"].TeamColor 
+			plr.TeamColor = game.Teams["Bürger"].TeamColor --teams player back to normal team
 			
-		elseif Wantedlevel.Value == 1 then 
+		else
 			local protection = char:FindFirstChild("Protection")
 			if protection then
 				protection:Destroy() --destroys protection if there is a protection
@@ -321,33 +318,16 @@ WantedEv.Event:Connect(function(plr)
 			jailtime = jailtime + 60 --addes jailtime
 			print(Wantedlevel.Value)
 			print("Jailtime has set to "..jailtime)
-			
-		elseif Wantedlevel.Value == 2 then 
-			jailtime = jailtime + 60
-			print(Wantedlevel.Value)
-			
-		elseif Wantedlevel.Value == 3 then 
-			jailtime = jailtime + 60
-			print(Wantedlevel.Value)
-			
-		elseif Wantedlevel.Value == 4 then 
-			jailtime = jailtime + 60
-			print(Wantedlevel.Value)
-			
-		elseif Wantedlevel.Value == 5 then 
-			jailtime = jailtime + 60
-			print(Wantedlevel.Value)
-	
 		end	
 
-		reactive(plr)	
+		reactive(plr)	--calls function to decrease wantedlevel
 		end
 end)
 -------------
 local Pdisable = game.ReplicatedStorage.Arrest.Pdisable
 local PActive = game.ReplicatedStorage.Arrest.PActive
 local on = false
-Pdisable.OnServerEvent:Connect(function(plr) --event will receive when certain tools are equipped (Handcuffs, Weapons,...); then it will destroy the protection 
+Pdisable.OnServerEvent:Connect(function(plr) --event will receive when certain tools are equipped (Handcuffs, Weapons,...); then it will destroy the protection so you can take damage 
 	if on == false then
 	local char2 = plr.Character
 		if char2 then
@@ -364,8 +344,7 @@ Pdisable.OnServerEvent:Connect(function(plr) --event will receive when certain t
 		on = true
 	end
 end)
-PActive.OnServerEvent:Connect(function(plr) --reactive protection
-	print("aco")
+PActive.OnServerEvent:Connect(function(plr) --reactive protection when tools unequipped
 	local char2 = plr.Character
 	if char2 then
 		wait(12)
