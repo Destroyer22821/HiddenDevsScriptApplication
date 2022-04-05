@@ -1,0 +1,117 @@
+local p = script.Parent
+local f = workspace.Fahrzeuge
+local plrs = game.Players
+local cn =  "'s Car"
+local cn2 =  "Empty Car"
+local evfolder = game.ReplicatedStorage.ADDACUploadEvents
+local askp = evfolder.Askplayer
+local askp2 = evfolder.Askplayer2
+local b = script.Parent.Parent.Parent
+local truck = b.Parent
+local place = b.Place
+local insertclicker = evfolder.Insertclicker
+local insc2 = evfolder.Insertclicker2
+
+
+local function GetCarFromPlayers()
+	for i, v in pairs(plrs:GetPlayers()) do 
+		local car = f:FindFirstChild(v.Name..cn)
+		if car then
+			return v, car
+		else
+			local car2 = f:FindFirstChild(v.Name..cn2)
+			if car2 then
+				return v, car2
+			end
+		end
+		
+	end
+end
+
+local function weld(c, place, state)
+	local pr = c.PrimaryPart
+	if state == false then
+	if pr then
+			local w = Instance.new("WeldConstraint",pr)
+			w.Part0  = pr
+			w.Part1 = place
+		print("model welded")
+		end
+	end
+end
+
+local function steer(c, state)
+	local w = c.Wheels
+	if state == false then
+		for i, v in pairs(w:GetChildren()) do
+			if v.Name == "FL" or  v.Name == "FR" then
+				v.Arm.Steer.MaxTorque = Vector3.new(v.Arm.Steer.MaxTorque.X,0,v.Arm.Steer.MaxTorque.Z)
+				end
+		end
+	end
+end
+local function unloadcar(car,u)
+	local pr = car.PrimaryPart
+	print(pr)
+	local w = car.Wheels
+	local wc = pr:WaitForChild("WeldConstraint")
+	print(wc)
+	if wc then
+		print("found")
+		wc:Destroy()
+	else
+	end
+	for i, v in pairs(w:GetChildren()) do
+		if v.Name == "FL" or  v.Name == "FR" then
+			v.Arm.Steer.MaxTorque = Vector3.new(v.Arm.Steer.MaxTorque.X,50000,v.Arm.Steer.MaxTorque.Z)
+		end
+	end
+	car:SetPrimaryPartCFrame(u.CFrame)
+		car.Parent = f
+end
+
+p.Triggered:Connect(function(adacplr)
+	local plr, c = GetCarFromPlayers()
+	if plr.Team.Name == "Bürger" then
+		print(c)
+		print(c.Name)
+		insertclicker:FireClient(adacplr,c, plr)
+		askp.OnServerEvent:Connect(function(plr, state)
+			if state == "Allow" then
+				local car = f:FindFirstChild(plr.Name..cn)
+				if car then
+				else
+					car = f:FindFirstChild(plr.Name..cn2)	
+				end
+			if car.PrimaryPart then
+			if truck and place then
+				car:SetPrimaryPartCFrame(place.CFrame)
+				steer(car, false)
+				weld(car, place, false)	
+				c.Parent = truck.Misc
+				insc2:FireClient(adacplr, place,plr)
+				end
+			end
+			elseif state == "Declined" then
+				print(plr.Name.." "..state)
+				return
+			end
+		end)
+	end 
+end)
+
+insc2.OnServerEvent:Connect(function(p,plr)
+	askp2:FireClient(p,plr)
+end)
+
+askp2.OnServerEvent:Connect(function(sendplr,rp,state)
+	local car = truck.Misc:FindFirstChild(rp.Name..cn) or truck.Misc:FindFirstChild(rp.Name..cn2)
+	if  state == "Allow2" then
+		unloadcar(car, truck.Body.Unload)	
+	elseif state == "Declined2" then
+		return
+	end
+end)
+insertclicker.OnServerEvent:Connect(function(sendedplr, car, receiveplr)
+	evfolder.Askplayer:FireClient(receiveplr, receiveplr.Name)
+end)
